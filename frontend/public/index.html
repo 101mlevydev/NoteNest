@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoteNest</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .note {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .note form input[type="text"], 
+        .note form textarea {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .note form button {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .note form button:hover {
+            background-color: #0056b3;
+        }
+        .delete-btn {
+            color: #dc3545;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>NoteNest</h1>
+    <div id="notes-container"></div>
+
+    <script>
+        // Function to fetch and display notes
+        function fetchNotes() {
+            fetch('/notes')
+                .then(response => response.json())
+                .then(notes => {
+                    const notesContainer = document.getElementById('notes-container');
+                    notesContainer.innerHTML = '';
+
+                    notes.forEach(note => {
+                        const noteElement = document.createElement('div');
+                        noteElement.className = 'note';
+                        noteElement.innerHTML = `
+                            <form onsubmit="updateNote('${note._id}')">
+                                <input type="text" name="title" value="${note.title}" required>
+                                <textarea name="content" required>${note.content}</textarea>
+                                <button type="submit">Update</button>
+                                <span class="delete-btn" onclick="deleteNote('${note._id}')">Delete</span>
+                            </form>
+                        `;
+                        notesContainer.appendChild(noteElement);
+                    });
+                });
+        }
+
+        // Function to create a new note
+        function createNote() {
+            const title = document.getElementById('new-note-title').value;
+            const content = document.getElementById('new-note-content').value;
+
+            fetch('/notes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, content })
+            })
+            .then(response => {
+                if (response.ok) {
+                    fetchNotes();
+                    document.getElementById('new-note-title').value = '';
+                    document.getElementById('new-note-content').value = '';
+                }
+            });
+        }
+
+        // Function to update an existing note
+        function updateNote(noteId) {
+            const title = document.querySelector(`[data-note-id="${noteId}"] [name="title"]`).value;
+            const content = document.querySelector(`[data-note-id="${noteId}"] [name="content"]`).value;
+
+            fetch(`/notes/${noteId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, content })
+            })
+            .then(response => {
+                if (response.ok) {
+                    fetchNotes();
+                }
+            });
+        }
+
+        // Function to delete a note
+        function deleteNote(noteId) {
+            fetch(`/notes/${noteId}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    fetchNotes();
+                }
+            });
+        }
+
+        // Initial fetch of notes
+        fetchNotes();
+    </script>
+</body>
+</html>

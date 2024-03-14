@@ -1,0 +1,11 @@
+#create the directory structure by using the relevant script
+
+#initialize a git repo using the relevant script.
+#fix the origin repo to your own repo
+
+#run the dockerfile and build images
+docker build -t NoteNest-backend .
+
+docker build -t NoteNest-frontend .
+
+
